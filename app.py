@@ -38,7 +38,7 @@ def to_excel(data, verb):
 
     row = 1
 
-    for mood, tenses in data.items():
+    conjugation = SER
         ws.cell(row=row, column=1, value=mood)
         row += 1
 
