@@ -65,7 +65,9 @@ verb = st.text_input("Enter verb", "ser")
 if st.button("Generate"):
     st.subheader(f"Conjugation: {verb}")
 
-    for mood, tenses in SER.items():
+    conjugation = SER
+
+for mood, tenses in conjugation.items():
         st.markdown(f"## {mood}")
 
         for tense, forms in tenses.items():
