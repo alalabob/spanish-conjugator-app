@@ -1,86 +1,229 @@
-import streamlit as st
+# Rioplatense Spanish Conjugator - Version 1
+# Indicative only (Present, Imperfect, Preterite, Future, Conditional)
+# Supports: tú + vos, no vosotros
 
-st.title("Spanish Verb Conjugator")
-
-PRONOUNS = ["yo","tú","vos","él/ella/Ud.","nosotros","ellos/ellas/Uds."]
-
-# -----------------------------
-# IRREGULAR VERBS (MINIMAL SET)
-# -----------------------------
-IRREGULAR = {
+IRREGULARS = {
     "ser": {
-        "Present": ["soy","eres","sos","es","somos","son"],
-        "Preterite": ["fui","fuiste","fuiste","fue","fuimos","fueron"],
-        "Future": ["seré","serás","serás","será","seremos","serán"],
-        "Conditional": ["sería","serías","serías","sería","seríamos","serían"]
+        "present": {
+            "yo": "soy",
+            "tu": "eres",
+            "vos": "sos",
+            "usted": "es",
+            "el_ella": "es",
+            "nosotros": "somos",
+            "ustedes": "son",
+            "ellos": "son",
+        }
     },
     "ir": {
-        "Present": ["voy","vas","vas","va","vamos","van"],
-        "Preterite": ["fui","fuiste","fuiste","fue","fuimos","fueron"]
+        "present": {
+            "yo": "voy",
+            "tu": "vas",
+            "vos": "vas",
+            "usted": "va",
+            "el_ella": "va",
+            "nosotros": "vamos",
+            "ustedes": "van",
+            "ellos": "van",
+        }
     },
     "tener": {
-        "Present": ["tengo","tienes","tenés","tiene","tenemos","tienen"]
+        "present": {
+            "yo": "tengo",
+            "tu": "tienes",
+            "vos": "tenés",
+            "usted": "tiene",
+            "el_ella": "tiene",
+            "nosotros": "tenemos",
+            "ustedes": "tienen",
+            "ellos": "tienen",
+        }
     }
 }
 
-# -----------------------------
-# REGULAR VERB ENGINE
-# -----------------------------
-def regular_conjugate(verb):
-    stem = verb[:-2]
-    ending = verb[-2:]
+PRONOUNS = [
+    "yo",
+    "tu",
+    "vos",
+    "usted",
+    "el_ella",
+    "nosotros",
+    "ustedes",
+    "ellos",
+]
 
-    if ending == "ar":
-        return {
-            "Present": [stem+"o", stem+"as", stem+"ás", stem+"a", stem+"amos", stem+"an"],
-            "Preterite": [stem+"é", stem+"aste", stem+"aste", stem+"ó", stem+"amos", stem+"aron"],
-            "Future": [verb+"é", verb+"ás", verb+"ás", verb+"á", verb+"emos", verb+"án"],
-            "Conditional": [verb+"ía", verb+"ías", verb+"ías", verb+"ía", verb+"íamos", verb+"ían"]
-        }
 
-    if ending == "er":
-        return {
-            "Present": [stem+"o", stem+"es", stem+"és", stem+"e", stem+"emos", stem+"en"],
-            "Preterite": [stem+"í", stem+"iste", stem+"iste", stem+"ió", stem+"imos", stem+"ieron"],
-            "Future": [verb+"é", verb+"ás", verb+"ás", verb+"á", verb+"emos", verb+"án"],
-            "Conditional": [verb+"ía", verb+"ías", verb+"ías", verb+"ía", verb+"íamos", verb+"ían"]
-        }
+def get_verb_type(verb):
+    if verb.endswith("ar"):
+        return "ar"
+    if verb.endswith("er"):
+        return "er"
+    if verb.endswith("ir"):
+        return "ir"
+    return None
 
-    if ending == "ir":
-        return {
-            "Present": [stem+"o", stem+"es", stem+"ís", stem+"e", stem+"imos", stem+"en"],
-            "Preterite": [stem+"í", stem+"iste", stem+"iste", stem+"ió", stem+"imos", stem+"ieron"],
-            "Future": [verb+"é", verb+"ás", verb+"ás", verb+"á", verb+"emos", verb+"án"],
-            "Conditional": [verb+"ía", verb+"ías", verb+"ías", verb+"ía", verb+"íamos", verb+"ían"]
-        }
 
-    return {}
+def get_stem(verb):
+    return verb[:-2]
 
-# -----------------------------
-# MAIN ENGINE
-# -----------------------------
+
+PRESENT_ENDINGS = {
+    "ar": {
+        "yo": "o",
+        "tu": "as",
+        "vos": "ás",
+        "usted": "a",
+        "el_ella": "a",
+        "nosotros": "amos",
+        "ustedes": "an",
+        "ellos": "an",
+    },
+    "er": {
+        "yo": "o",
+        "tu": "es",
+        "vos": "és",
+        "usted": "e",
+        "el_ella": "e",
+        "nosotros": "emos",
+        "ustedes": "en",
+        "ellos": "en",
+    },
+    "ir": {
+        "yo": "o",
+        "tu": "es",
+        "vos": "ís",
+        "usted": "e",
+        "el_ella": "e",
+        "nosotros": "imos",
+        "ustedes": "en",
+        "ellos": "en",
+    },
+}
+
+
+IMPERFECT_ENDINGS = {
+    "ar": {
+        "yo": "aba",
+        "tu": "abas",
+        "vos": "abas",
+        "usted": "aba",
+        "el_ella": "aba",
+        "nosotros": "ábamos",
+        "ustedes": "aban",
+        "ellos": "aban",
+    },
+    "er": {
+        "yo": "ía",
+        "tu": "ías",
+        "vos": "ías",
+        "usted": "ía",
+        "el_ella": "ía",
+        "nosotros": "íamos",
+        "ustedes": "ían",
+        "ellos": "ían",
+    },
+    "ir": {
+        "yo": "ía",
+        "tu": "ías",
+        "vos": "ías",
+        "usted": "ía",
+        "el_ella": "ía",
+        "nosotros": "íamos",
+        "ustedes": "ían",
+        "ellos": "ían",
+    },
+}
+
+
+PRETERITE_ENDINGS = {
+    "ar": {
+        "yo": "é",
+        "tu": "aste",
+        "vos": "aste",
+        "usted": "ó",
+        "el_ella": "ó",
+        "nosotros": "amos",
+        "ustedes": "aron",
+        "ellos": "aron",
+    },
+    "er": {
+        "yo": "í",
+        "tu": "iste",
+        "vos": "iste",
+        "usted": "ió",
+        "el_ella": "ió",
+        "nosotros": "imos",
+        "ustedes": "ieron",
+        "ellos": "ieron",
+    },
+    "ir": {
+        "yo": "í",
+        "tu": "iste",
+        "vos": "iste",
+        "usted": "ió",
+        "el_ella": "ió",
+        "nosotros": "imos",
+        "ustedes": "ieron",
+        "ellos": "ieron",
+    },
+}
+
+
+FUTURE_ENDINGS = {
+    "yo": "é",
+    "tu": "ás",
+    "vos": "ás",
+    "usted": "á",
+    "el_ella": "á",
+    "nosotros": "emos",
+    "ustedes": "án",
+    "ellos": "án",
+}
+
+
+CONDITIONAL_ENDINGS = {
+    "yo": "ía",
+    "tu": "ías",
+    "vos": "ías",
+    "usted": "ía",
+    "el_ella": "ía",
+    "nosotros": "íamos",
+    "ustedes": "ían",
+    "ellos": "ían",
+}
+
+
+def build_regular(verb, endings, use_infinitive=False):
+    verb_type = get_verb_type(verb)
+    stem = verb if use_infinitive else get_stem(verb)
+
+    if verb_type is None:
+        return None
+
+    result = {}
+
+    for pronoun in PRONOUNS:
+        if use_infinitive:
+            result[pronoun] = stem + endings[pronoun]
+        else:
+            result[pronoun] = stem + endings[verb_type][pronoun]
+
+    return result
+
+
 def conjugate(verb):
     verb = verb.lower().strip()
 
-    if verb in IRREGULAR:
-        return IRREGULAR[verb]
+    result = {}
 
-    return regular_conjugate(verb)
+    if verb in IRREGULARS and "present" in IRREGULARS[verb]:
+        result["present"] = IRREGULARS[verb]["present"]
+    else:
+        result["present"] = build_regular(verb, PRESENT_ENDINGS)
 
-# -----------------------------
-# UI
-# -----------------------------
-verb = st.text_input("Enter verb", "hablar")
+    result["imperfect"] = build_regular(verb, IMPERFECT_ENDINGS)
+    result["preterite"] = build_regular(verb, PRETERITE_ENDINGS)
+    result["future"] = build_regular(verb, FUTURE_ENDINGS, use_infinitive=True)
+    result["conditional"] = build_regular(verb, CONDITIONAL_ENDINGS, use_infinitive=True)
 
-if st.button("Generate"):
-    data = conjugate(verb)
-
-    st.subheader(f"Conjugation: {verb}")
-
-    for tense, forms in data.items():
-        st.markdown(f"## {tense}")
-
-        cols = st.columns(len(PRONOUNS))
-        for i, col in enumerate(cols):
-            col.write(PRONOUNS[i])
-            col.write(forms[i])
+    return result
