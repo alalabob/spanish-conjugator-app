@@ -1,87 +1,64 @@
-import streamlit as st
-from openpyxl import Workbook
-from io import BytesIO
-
 PRONOUNS = ["yo","tú","vos","él/ella/Ud.","nosotros","ellos/ellas/Uds."]
 
-SER = {
-    "Indicative": {
-        "Present": ["soy","eres","sos","es","somos","son"],
-        "Preterite": ["fui","fuiste","fuiste","fue","fuimos","fueron"],
-        "Imperfect": ["era","eras","eras","era","éramos","eran"],
-        "Future": ["seré","serás","serás","será","seremos","serán"],
-        "Conditional": ["sería","serías","serías","sería","seríamos","serían"]
+# -----------------------------
+# IRREGULAR VERBS (START SET)
+# -----------------------------
+IRREGULAR = {
+    "ser": {
+        "present": ["soy","eres","sos","es","somos","son"],
+        "preterite": ["fui","fuiste","fuiste","fue","fuimos","fueron"],
+        "future": ["seré","serás","serás","será","seremos","serán"],
+        "conditional": ["sería","serías","serías","sería","seríamos","serían"]
     },
-    "Progressive": {
-        "Present": ["estoy siendo","estás siendo","estás siendo","está siendo","estamos siendo","están siendo"]
+    "ir": {
+        "present": ["voy","vas","vas","va","vamos","van"],
+        "preterite": ["fui","fuiste","fuiste","fue","fuimos","fueron"]
     },
-    "Perfect": {
-        "Present": ["he sido","has sido","has sido","ha sido","hemos sido","han sido"]
-    },
-    "Subjunctive": {
-        "Present": ["sea","seas","seas","sea","seamos","sean"],
-        "Imperfect": ["fuera","fueras","fueras","fuera","fuéramos","fueran"]
-    },
-    "Perfect Subjunctive": {
-        "Present": ["haya sido","hayas sido","hayas sido","haya sido","hayamos sido","hayan sido"]
-    },
-    "Imperative": {
-        "Affirmative": ["—","sé","sé","sea","seamos","sean"],
-        "Negative": ["—","no seas","no seas","no sea","no seamos","no sean"]
+    "tener": {
+        "present": ["tengo","tienes","tenés","tiene","tenemos","tienen"]
     }
 }
 
-def to_excel(data, verb):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = verb
+# -----------------------------
+# REGULAR VERB ENGINE
+# -----------------------------
+def regular_conjugate(verb):
+    stem = verb[:-2]
+    ending = verb[-2:]
 
-    row = 1
+    if ending == "ar":
+        return {
+            "present": [stem+"o", stem+"as", stem+"ás", stem+"a", stem+"amos", stem+"an"],
+            "preterite": [stem+"é", stem+"aste", stem+"aste", stem+"ó", stem+"amos", stem+"aron"],
+            "future": [verb+"é", verb+"ás", verb+"ás", verb+"á", verb+"emos", verb+"án"],
+            "conditional": [verb+"ía", verb+"ías", verb+"ías", verb+"ía", verb+"íamos", verb+"ían"]
+        }
 
-    conjugation = SER
-    for mood, tenses in conjugation.items():
-        ws.cell(row=row, column=1, value=mood)
-        row += 1
+    if ending == "er":
+        return {
+            "present": [stem+"o", stem+"es", stem+"és", stem+"e", stem+"emos", stem+"en"],
+            "preterite": [stem+"í", stem+"iste", stem+"iste", stem+"ió", stem+"imos", stem+"ieron"],
+            "future": [verb+"é", verb+"ás", verb+"ás", verb+"á", verb+"emos", verb+"án"],
+            "conditional": [verb+"ía", verb+"ías", verb+"ías", verb+"ía", verb+"íamos", verb+"ían"]
+        }
 
-        for tense, forms in tenses.items():
-            ws.cell(row=row, column=1, value=tense)
+    if ending == "ir":
+        return {
+            "present": [stem+"o", stem+"es", stem+"ís", stem+"e", stem+"imos", stem+"en"],
+            "preterite": [stem+"í", stem+"iste", stem+"iste", stem+"ió", stem+"imos", stem+"ieron"],
+            "future": [verb+"é", verb+"ás", verb+"ás", verb+"á", verb+"emos", verb+"án"],
+            "conditional": [verb+"ía", verb+"ías", verb+"ías", verb+"ía", verb+"íamos", verb+"ían"]
+        }
 
-            for i, p in enumerate(PRONOUNS):
-                ws.cell(row=row, column=i+2, value=p)
-                ws.cell(row=row+1, column=i+2, value=forms[i])
+    return {}
 
-            row += 3
+# -----------------------------
+# MAIN ENGINE
+# -----------------------------
+def conjugate(verb):
+    verb = verb.lower()
 
-        row += 1
+    if verb in IRREGULAR:
+        return IRREGULAR[verb]
 
-    stream = BytesIO()
-    wb.save(stream)
-    stream.seek(0)
-    return stream
-
-st.title("Spanish Verb Conjugator")
-
-verb = st.text_input("Enter verb", "ser")
-
-if st.button("Generate"):
-    st.subheader(f"Conjugation: {verb}")
-
-    for mood, tenses in SER.items():
-        st.markdown(f"## {mood}")
-
-        for tense, forms in tenses.items():
-            st.markdown(f"**{tense}**")
-
-            cols = st.columns(len(PRONOUNS))
-            for i, col in enumerate(cols):
-                col.write(PRONOUNS[i])
-                col.write(forms[i])
-
-    excel_file = to_excel(SER, verb)
-
-    st.download_button(
-        "Download Excel",
-        excel_file,
-        f"{verb}_conjugation.xlsx",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    return regular_conjugate(verb)
